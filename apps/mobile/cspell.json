@@ -1,0 +1,40 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "ffmpeg",
+    "spliter",
+    "videospliter",
+    "kotlinx",
+    "androidx",
+    "xcworkspace",
+    "xcodeproj",
+    "cocoapods",
+    "metro",
+    "hermes",
+    "jscodeshift",
+    "jsbundle",
+    "gradlew",
+    "keystore",
+    "jetifier",
+    "onboarding",
+    "testid",
+    "testids",
+    "detox",
+    "maestro",
+    "RNFS"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "android/build",
+    "android/.gradle",
+    "ios/build",
+    "ios/Pods",
+    "*.lock",
+    "*.log",
+    ".git",
+    "dist",
+    "coverage"
+  ],
+  "ignoreRegExpList": ["/0x[0-9a-fA-F]+/", "/\\b[A-F0-9]{32}\\b/"]
+}
