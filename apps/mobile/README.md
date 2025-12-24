@@ -8,15 +8,17 @@ VideoSpliter is a mobile-first video processing application built with React Nat
 
 ## Project Status
 
-**Current Phase**: Foundation ✅
+**Current Phase**: Native Integration (iOS) 🚧
 
-This is a foundational setup with no video processing features implemented yet. The project provides:
+The project foundation is complete with native FFmpeg integration for iOS. The following components are ready:
 
-- Clean architecture with clear boundaries
-- Comprehensive tooling and quality checks
-- TypeScript strict mode
-- Testing infrastructure
-- Documentation
+- ✅ Clean architecture with clear boundaries
+- ✅ Comprehensive tooling and quality checks
+- ✅ TypeScript strict mode
+- ✅ Testing infrastructure
+- ✅ FFmpeg integration for iOS (frame extraction, metadata)
+- ⏳ FFmpeg integration for Android (pending)
+- ⏳ Video processing features (UI implementation pending)
 
 ## Tech Stack
 
@@ -24,6 +26,7 @@ This is a foundational setup with no video processing features implemented yet. 
 - **Language**: TypeScript (Strict mode)
 - **Targets**: Android + iOS
 - **Architecture**: Client-only (no backend)
+- **Video Processing**: FFmpeg (ffmpeg-kit-react-native, min variant)
 - **Testing**: Jest
 - **Linting**: ESLint + Prettier
 - **Spellcheck**: CSpell
@@ -65,9 +68,24 @@ apps/mobile/
 cd apps/mobile
 pnpm install
 
-# iOS only: Install CocoaPods
-cd ios && pod install && cd ..
+# iOS only: Install CocoaPods dependencies (includes FFmpeg)
+cd ios && pod install --repo-update && cd ..
 ```
+
+#### iOS-Specific Setup
+
+After installing CocoaPods dependencies, you need to manually add Swift files to Xcode:
+
+1. Open `ios/VideoSpliter.xcworkspace` in Xcode (NOT `.xcodeproj`)
+2. Right-click on the `VideoSpliter` group in the project navigator
+3. Select "Add Files to VideoSpliter..."
+4. Navigate to `ios/VideoSpliter/FFmpeg/`
+5. Select all `.swift` files (VideoProcessorError.swift, FFmpegVideoProcessor.swift, VideoProcessingModule.swift, VideoProcessorTypes.swift)
+6. **Important**: Uncheck "Copy items if needed"
+7. Ensure "Create groups" is selected
+8. Click "Add"
+
+The Objective-C bridge file (`VideoProcessingModule.m`) is already included and doesn't need to be added manually.
 
 ### Running the App
 
@@ -120,15 +138,79 @@ See [docs/contributing.md](./docs/contributing.md) for development guidelines an
 - Pre-commit hooks ensure code quality
 - Tests required for business logic
 
+## Native Dependencies
+
+### FFmpeg Integration
+
+VideoSpliter uses **ffmpeg-kit-react-native** (min variant) for video processing:
+
+- **Library**: `ffmpeg-kit-react-native`
+- **Variant**: Min (~30-40MB additional app size)
+- **iOS Status**: ✅ Implemented (Issue #3)
+- **Android Status**: ⏳ Pending (Issue #2)
+
+**Capabilities**:
+
+- Extract frames from videos at specified intervals
+- Retrieve video metadata (duration, resolution, codec, bitrate, etc.)
+- Cancel long-running operations
+- Support for common video formats (MP4, MOV, AVI, etc.)
+
+**Bundle Size Impact**:
+
+- iOS: +30-40MB (min variant vs +120MB for full FFmpeg)
+- The min variant includes essential video processing codecs
+- See [Podfile](./ios/Podfile) for FFmpeg configuration
+
+**Documentation**:
+
+- [Native Module Usage Guide](./src/native/README.md)
+- [Architecture Documentation](./docs/architecture.md#native-modules---ffmpeg-integration)
+
+### iOS Permissions
+
+The app requires the following iOS permissions (configured in Info.plist):
+
+- **Photo Library Access**: To import videos from user's photo library
+- **Camera Access**: To record videos directly in the app
+- **File Sharing**: To allow users to import videos via Files app
+
 ## Future Features
 
 The following features will be implemented in future issues:
 
-- Native FFmpeg integration (Android & iOS)
-- Video import and preview
-- Frame extraction and timeline
+- ✅ Native FFmpeg integration for iOS
+- ⏳ Native FFmpeg integration for Android (Issue #2)
+- Video import and preview UI
+- Frame extraction UI with timeline
 - Export and sharing functionality
+- Progress callbacks for long operations
 - E2E testing with Detox or Maestro
+
+## Troubleshooting
+
+### iOS Build Issues
+
+**"VideoProcessingModule is not available"**
+
+- Ensure you ran `pod install --repo-update` in the ios/ directory
+- Verify Swift files were added to Xcode project (see iOS-Specific Setup above)
+- Clean and rebuild: `cd ios && xcodebuild clean`
+
+**Bitcode compilation error**
+
+- FFmpeg does not support bitcode
+- Solution: Build settings have `ENABLE_BITCODE = NO` in Podfile post_install hook
+
+**"Use of undeclared type 'FFmpegKit'"**
+
+- Run `pod install` again
+- Clean Xcode derived data: `rm -rf ~/Library/Developer/Xcode/DerivedData`
+
+For more troubleshooting, see:
+
+- [Known Issues](./KNOWN_ISSUES.md) - Platform-specific issues
+- [Native Module Troubleshooting](./src/native/README.md#troubleshooting) - FFmpeg-specific issues
 
 ## License
 
@@ -138,3 +220,4 @@ TBD
 
 - [Architecture Documentation](./docs/architecture.md)
 - [Contributing Guidelines](./docs/contributing.md)
+- [Native Module Usage Guide](./src/native/README.md)

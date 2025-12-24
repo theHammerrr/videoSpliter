@@ -415,6 +415,362 @@ export class VideoProcessingError extends Error {
 - Consider styled-components if needed
 - Theme system via Context
 
+## Native Modules - FFmpeg Integration
+
+### Overview
+
+VideoSpliter uses **FFmpeg** for video processing through a native module bridge. The implementation follows the adapter pattern with clear separation between TypeScript and native code.
+
+**Key Components**:
+
+- **TypeScript Adapter Interface**: `VideoProcessingAdapter` defines the contract
+- **Native Implementations**: iOS (Swift) and Android (Kotlin) - currently iOS only
+- **Mock Adapter**: For testing without native dependencies
+- **FFmpeg Library**: ffmpeg-kit-react-native (min variant, ~30-40MB)
+
+### Architecture Layers
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           TypeScript Layer (JavaScript)                 │
+├─────────────────────────────────────────────────────────┤
+│  NativeVideoProcessingAdapter                           │
+│    - Implements VideoProcessingAdapter interface        │
+│    - Calls NativeModules.VideoProcessingModule          │
+│    - Transforms errors to domain errors                 │
+├─────────────────────────────────────────────────────────┤
+│           React Native Bridge (Objective-C)             │
+├─────────────────────────────────────────────────────────┤
+│  VideoProcessingModule.m                                │
+│    - RCT_EXTERN_MODULE exposes Swift to RN              │
+│    - RCT_EXTERN_METHOD exposes Swift methods            │
+├─────────────────────────────────────────────────────────┤
+│              Native Layer (Swift)                       │
+├─────────────────────────────────────────────────────────┤
+│  VideoProcessingModule                                  │
+│    - @objc methods callable from JavaScript             │
+│    - Promise-based async API                            │
+│    - Delegates to FFmpegVideoProcessor                  │
+│                                                          │
+│  FFmpegVideoProcessor                                   │
+│    - Core FFmpeg processing logic                       │
+│    - Builds and executes FFmpeg commands                │
+│    - Error handling and result collection               │
+├─────────────────────────────────────────────────────────┤
+│       FFmpeg Kit Library (Pre-built Binary)             │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Video Processing Data Flow
+
+#### Frame Extraction Flow
+
+```
+TypeScript (Feature/Service)
+    ↓
+NativeVideoProcessingAdapter.extractFrames()
+    ↓
+NativeModules.VideoProcessingModule.extractFrames()
+    ↓  [React Native Bridge]
+    ↓
+VideoProcessingModule.swift (RN Bridge)
+    ↓
+FFmpegVideoProcessor.extractFrames()
+    ↓
+FFmpegKit.execute(command)
+    ↓  [Native FFmpeg Execution]
+    ↓
+Frame files written to disk
+    ↓
+Result { outputPaths, frameCount, processingTimeMs }
+    ↓  [Back through bridge]
+    ↓
+TypeScript receives FrameExtractionResult
+```
+
+#### Error Flow
+
+```
+Swift Error (VideoProcessorError)
+    ↓
+RN Bridge (reject promise with code & message)
+    ↓
+TypeScript catch block
+    ↓
+mapNativeErrorToVideoProcessingError()
+    ↓
+VideoProcessingError (domain error)
+    ↓
+Service/Feature error handling
+```
+
+### Layer Responsibilities
+
+#### TypeScript Adapter Layer
+
+**Files**:
+
+- `src/domain/adapters/VideoProcessingAdapter.ts` - Interface definition
+- `src/domain/adapters/native/NativeVideoProcessingAdapter.ts` - Native bridge
+- `src/domain/adapters/native/VideoProcessingError.ts` - Error types
+- `src/domain/adapters/mock/MockVideoProcessingAdapter.ts` - Testing mock
+
+**Responsibilities**:
+
+1. Define clean, type-safe interface for video operations
+2. Bridge TypeScript to native code via `NativeModules`
+3. Transform platform errors into domain errors
+4. Provide mock implementation for unit testing
+
+**Example Usage**:
+
+```typescript
+import { NativeVideoProcessingAdapter } from '@adapters/native/NativeVideoProcessingAdapter';
+
+const adapter = new NativeVideoProcessingAdapter();
+
+try {
+  const result = await adapter.extractFrames({
+    videoPath: '/path/to/video.mp4',
+    outputDirectory: '/path/to/output',
+    frameRate: 1, // 1 frame per second
+    quality: 2, // High quality (1-31, lower is better)
+  });
+
+  console.log(`Extracted ${result.frameCount} frames in ${result.processingTimeMs}ms`);
+  console.log('Output files:', result.outputPaths);
+} catch (error) {
+  if (error instanceof VideoProcessingError) {
+    console.error(`Error [${error.code}]: ${error.message}`);
+  }
+}
+```
+
+#### Native Swift Layer (iOS)
+
+**Files**:
+
+- `ios/VideoSpliter/FFmpeg/VideoProcessingModule.swift` - RN bridge
+- `ios/VideoSpliter/FFmpeg/VideoProcessingModule.m` - Objective-C bridge
+- `ios/VideoSpliter/FFmpeg/FFmpegVideoProcessor.swift` - FFmpeg logic
+- `ios/VideoSpliter/FFmpeg/VideoProcessorError.swift` - Error types
+- `ios/VideoSpliter/FFmpeg/VideoProcessorTypes.swift` - Type definitions
+
+**Responsibilities**:
+
+1. Expose Swift methods to React Native via `@objc`
+2. Execute FFmpeg commands using ffmpeg-kit library
+3. Handle native errors and map to error codes
+4. Run operations on background threads
+5. Support cancellation of long-running operations
+
+**FFmpeg Command Examples**:
+
+```swift
+// Extract all frames at high quality
+ffmpeg -i input.mp4 -q:v 2 output/frame_%04d.jpg
+
+// Extract 1 frame per second
+ffmpeg -i input.mp4 -vf fps=1 -q:v 2 output/frame_%04d.jpg
+
+// Get video metadata
+ffprobe -v quiet -print_format json -show_format -show_streams input.mp4
+```
+
+### Error Handling
+
+#### Error Code Mapping
+
+| Swift Error                     | Error Code             | TypeScript Error     |
+| ------------------------------- | ---------------------- | -------------------- |
+| `invalidVideoPath`              | `INVALID_VIDEO_PATH`   | VideoProcessingError |
+| `ffmpegExecutionFailed`         | `FFMPEG_FAILED`        | VideoProcessingError |
+| `videoNotFound`                 | `VIDEO_NOT_FOUND`      | VideoProcessingError |
+| `cancelled`                     | `CANCELLED`            | VideoProcessingError |
+| `insufficientStorage`           | `INSUFFICIENT_STORAGE` | VideoProcessingError |
+| `invalidFrameRate`              | `INVALID_FRAME_RATE`   | VideoProcessingError |
+| `outputDirectoryCreationFailed` | `OUTPUT_DIR_FAILED`    | VideoProcessingError |
+
+#### Error Handling Best Practices
+
+1. **Always use try-catch** when calling adapter methods
+2. **Check error codes** for specific error handling
+3. **Provide user-friendly messages** in the UI layer
+4. **Log errors** for debugging (native and TypeScript)
+5. **Clean up resources** on error (temporary files, etc.)
+
+```typescript
+try {
+  const result = await adapter.extractFrames(config);
+  return result;
+} catch (error) {
+  if (error instanceof VideoProcessingError) {
+    switch (error.code) {
+      case VideoProcessingErrorCode.VIDEO_NOT_FOUND:
+        showUserMessage('Video file not found');
+        break;
+      case VideoProcessingErrorCode.INSUFFICIENT_STORAGE:
+        showUserMessage('Not enough storage space');
+        break;
+      case VideoProcessingErrorCode.CANCELLED:
+        // User cancelled - no message needed
+        break;
+      default:
+        showUserMessage('Failed to process video');
+        logError(error);
+    }
+  }
+  throw error; // Re-throw for caller to handle
+}
+```
+
+### Testing Strategy
+
+#### Unit Tests (TypeScript)
+
+Test the **mock adapter** to verify interface contract:
+
+```typescript
+// src/domain/adapters/__tests__/VideoProcessingAdapter.test.ts
+describe('VideoProcessingAdapter', () => {
+  let adapter: MockVideoProcessingAdapter;
+
+  it('should extract frames successfully', async () => {
+    const result = await adapter.extractFrames({
+      videoPath: '/test/video.mp4',
+      outputDirectory: '/test/output',
+    });
+    expect(result.frameCount).toBeGreaterThan(0);
+  });
+
+  it('should handle cancellation', async () => {
+    const promise = adapter.extractFrames({...});
+    await adapter.cancelOperation();
+    await expect(promise).rejects.toThrow();
+  });
+});
+```
+
+#### Integration Tests (Swift)
+
+Test **real FFmpeg** with sample videos:
+
+```swift
+// ios/VideoSpliterTests/FFmpegVideoProcessorTests.swift
+class FFmpegVideoProcessorTests: XCTestCase {
+  func testExtractFrames() async throws {
+    let processor = FFmpegVideoProcessor()
+    let result = try await processor.extractFrames(
+      videoPath: testVideoPath,
+      outputDirectory: tempDirectory,
+      frameRate: 1,
+      quality: 2
+    )
+    XCTAssertGreaterThan(result.frameCount, 0)
+  }
+}
+```
+
+#### Manual Testing Checklist
+
+- [ ] Test with various video formats (MP4, MOV, AVI)
+- [ ] Test with different resolutions (720p, 1080p, 4K)
+- [ ] Test with very short videos (<1 second)
+- [ ] Test with long videos (>10 minutes)
+- [ ] Test cancellation mid-operation
+- [ ] Test with invalid file paths
+- [ ] Test with insufficient storage
+- [ ] Monitor memory usage during extraction
+- [ ] Verify frame quality and accuracy
+
+### Performance Considerations
+
+1. **Memory Usage**:
+
+   - Typical videos: ~50-100MB during extraction
+   - 4K videos: Can use 200-500MB
+   - All operations run on background threads
+   - Swift ARC handles memory automatically
+
+2. **Processing Time**:
+
+   - ~1-5 seconds for 10-second 1080p video (1 fps)
+   - Scales linearly with frame rate and video duration
+   - Quality setting has minimal impact on speed
+
+3. **Storage**:
+
+   - Each frame: ~100KB-500KB (depends on quality and resolution)
+   - 60-second video at 1fps: ~6-30MB output
+   - Always check available storage before extraction
+
+4. **Optimization Tips**:
+   - Use lower quality setting (higher number) for previews
+   - Extract fewer frames (lower frame rate) when possible
+   - Clean up temporary files after use
+   - Show progress indicators for long operations
+
+### Platform-Specific Notes
+
+#### iOS
+
+- **Minimum Version**: iOS 15.1+
+- **Permissions Required**:
+  - `NSPhotoLibraryUsageDescription` - For importing videos
+  - `NSCameraUsageDescription` - For recording videos
+  - `UIFileSharingEnabled` - For accessing documents
+- **Bundle Size Impact**: +30-40MB (min variant)
+- **Build Settings**:
+  - `ENABLE_BITCODE = NO` (FFmpeg doesn't support bitcode)
+  - `SWIFT_VERSION = 5.0`
+- **Xcode Setup**: Manual file addition to Xcode project required
+
+#### Android (Future)
+
+- Implementation pending in Issue #2
+- Will use same TypeScript adapter interface
+- Kotlin implementation with ffmpeg-kit-react-native
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **"VideoProcessingModule is not available"**
+
+   - **Cause**: Native module not linked or Xcode files not added
+   - **Fix**: Run `cd ios && pod install`, add files to Xcode project
+
+2. **"FFmpeg execution failed"**
+
+   - **Cause**: Invalid video file, corrupted data, or unsupported format
+   - **Fix**: Validate video file, check format support, inspect logs
+
+3. **"Insufficient storage"**
+
+   - **Cause**: Not enough disk space for extracted frames
+   - **Fix**: Check available space, clean up old files, reduce frame rate
+
+4. **High memory usage**
+
+   - **Cause**: Large video files or high frame rates
+   - **Fix**: Process in smaller chunks, reduce quality setting
+
+5. **Xcode build fails**
+   - **Cause**: Bitcode enabled or Swift version mismatch
+   - **Fix**: Disable bitcode, ensure Swift 5.0+
+
+### Future Enhancements
+
+- [ ] Progress callbacks during extraction (Issue: future)
+- [ ] Video trimming/cutting functionality
+- [ ] Custom FFmpeg filters (blur, crop, etc.)
+- [ ] Batch processing multiple videos
+- [ ] Resume interrupted operations
+- [ ] Streaming video support
+- [ ] Hardware acceleration (VideoToolbox on iOS)
+
+---
+
 ## Conventions
 
 1. **File Naming**:

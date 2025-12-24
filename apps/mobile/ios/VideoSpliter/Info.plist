@@ -50,5 +50,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>VideoSpliter needs access to your photos to import videos for frame extraction.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>VideoSpliter needs permission to save extracted frames to your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>VideoSpliter needs access to your camera to record videos.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 </dict>
 </plist>
