@@ -93,6 +93,12 @@ The Objective-C bridge file (`VideoProcessingModule.m`) is already included and 
 # Start Metro bundler
 pnpm start
 
+# Android setup notes:
+# - Ensure you have Android SDK configured (ANDROID_HOME or android/local.properties).
+# - FFmpegKit dependency may not be available from Maven Central anymore; if Gradle fails to resolve
+#   `com.arthenica:ffmpeg-kit-*`, use an internal Maven mirror (Artifactory/Nexus) and set:
+#   `FFMPEG_KIT_REPO_URL` (and optionally `FFMPEG_KIT_REPO_USER` / `FFMPEG_KIT_REPO_TOKEN`).
+
 # Run on Android
 pnpm android
 

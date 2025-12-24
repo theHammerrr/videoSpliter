@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue view:*)",
+      "Bash(npx @react-native-community/cli@latest init VideoSpliter --template react-native-template-typescript --skip-install --directory apps/mobile)",
+      "Bash(npx @react-native-community/cli@latest init VideoSpliter --skip-install --directory apps/mobile)",
+      "Bash(centy create issue --help:*)",
+      "Bash(centy create issue:*)",
+      "Bash(pnpm install)",
+      "Bash(centy list:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm format:check:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm spellcheck:*)",
+      "Bash(pnpm test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: initialize React Native mobile client foundation\n\nSet up VideoSpliter mobile app with React Native + TypeScript, complete\ntooling \\(ESLint, Prettier, CSpell, Husky\\), clean architecture, and\ncomprehensive documentation to enable safe feature development.\n\nImplements Issue #1 - Mobile Client Foundation.\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(ls -la:*)",
+      "Bash(done)",
+      "Bash(ls:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"File: {}\"\"; head -20 \"\"{}\"\"')",
+      "Bash(wc:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"=== {} ===\"\"; head -15 \"\"{}\"\"')",
+      "Bash(find:*)",
+      "WebSearch",
+      "Bash(git commit:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(java -version:*)",
+      "Bash(where:*)",
+      "Bash(dir \"C:\\\\Program Files\\\\Java\")",
+      "Bash(findstr:*)",
+      "Bash(pnpm android)",
+      "Bash(gradlew.bat app:installDebug:*)",
+      "Bash(./gradlew app:assembleDebug:*)",
+      "Bash(echo:*)"
+    ]
+  }
+}

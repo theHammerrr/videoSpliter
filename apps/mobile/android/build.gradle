@@ -18,4 +18,33 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+
+        // FFmpegKit artifacts appear to be unavailable from Maven Central in some environments.
+        // Configure an alternative Maven repository (recommended: your own Artifactory/Nexus mirror)
+        // via env vars or gradle.properties:
+        // - FFMPEG_KIT_REPO_URL / ffmpegKitRepoUrl
+        // - FFMPEG_KIT_REPO_USER / ffmpegKitRepoUser (optional)
+        // - FFMPEG_KIT_REPO_TOKEN / ffmpegKitRepoToken (optional)
+        def ffmpegKitRepoUrl = (System.getenv("FFMPEG_KIT_REPO_URL") ?: (findProperty("ffmpegKitRepoUrl") as String))
+        if (ffmpegKitRepoUrl != null && !ffmpegKitRepoUrl.trim().isEmpty()) {
+            maven {
+                url ffmpegKitRepoUrl
+                def ffmpegKitRepoUser = (System.getenv("FFMPEG_KIT_REPO_USER") ?: (findProperty("ffmpegKitRepoUser") as String))
+                def ffmpegKitRepoToken = (System.getenv("FFMPEG_KIT_REPO_TOKEN") ?: (findProperty("ffmpegKitRepoToken") as String))
+                if ((ffmpegKitRepoUser != null && !ffmpegKitRepoUser.trim().isEmpty()) ||
+                        (ffmpegKitRepoToken != null && !ffmpegKitRepoToken.trim().isEmpty())) {
+                    credentials {
+                        username = ffmpegKitRepoUser
+                        password = ffmpegKitRepoToken
+                    }
+                }
+            }
+        }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"
