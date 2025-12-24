@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 
 /**
  * React Native bridge for video processing operations
- * Exposes FFmpeg video processing functionality to JavaScript
+ * Exposes native video processing functionality to JavaScript
  * Must match iOS VideoProcessingModule interface exactly
  */
 @ReactModule(name = VideoProcessingModule.NAME)
@@ -20,7 +20,7 @@ class VideoProcessingModule(reactContext: ReactApplicationContext) :
         const val NAME = "VideoProcessingModule"
     }
 
-    private val processor = FFmpegVideoProcessor()
+    private val processor = AndroidVideoProcessor()
     private val moduleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun getName(): String = NAME
