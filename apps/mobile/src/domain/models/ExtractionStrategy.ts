@@ -113,27 +113,21 @@ export function isUniformSampling(
 /**
  * Type guard to check if a strategy is IntervalBasedStrategy
  */
-export function isIntervalBased(
-  strategy: ExtractionStrategy,
-): strategy is IntervalBasedStrategy {
+export function isIntervalBased(strategy: ExtractionStrategy): strategy is IntervalBasedStrategy {
   return strategy.type === 'interval';
 }
 
 /**
  * Type guard to check if a strategy is FrameBasedStrategy
  */
-export function isFrameBased(
-  strategy: ExtractionStrategy,
-): strategy is FrameBasedStrategy {
+export function isFrameBased(strategy: ExtractionStrategy): strategy is FrameBasedStrategy {
   return strategy.type === 'frame-based';
 }
 
 /**
  * Type guard to check if a strategy is AllFramesStrategy
  */
-export function isAllFrames(
-  strategy: ExtractionStrategy,
-): strategy is AllFramesStrategy {
+export function isAllFrames(strategy: ExtractionStrategy): strategy is AllFramesStrategy {
   return strategy.type === 'all-frames';
 }
 

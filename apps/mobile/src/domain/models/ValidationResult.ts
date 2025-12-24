@@ -65,17 +65,13 @@ export function createValidResult(): ValidationResult {
 /**
  * Helper to create an invalid validation result from errors
  */
-export function createInvalidResult(
-  errors: readonly ValidationError[],
-): ValidationResult {
+export function createInvalidResult(errors: readonly ValidationError[]): ValidationResult {
   return { valid: false, errors };
 }
 
 /**
  * Helper to create an invalid validation result from an error array
  */
-export function createInvalidResultFromArray(
-  errors: ValidationError[],
-): ValidationResult {
+export function createInvalidResultFromArray(errors: ValidationError[]): ValidationResult {
   return { valid: false, errors };
 }
