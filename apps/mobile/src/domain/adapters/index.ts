@@ -3,7 +3,7 @@
  * Clean exports for all adapter implementations
  */
 
-// Interface and types
+// Video Processing Interface and types
 export type {
   VideoProcessingAdapter,
   FrameExtractionConfig,
@@ -11,13 +11,22 @@ export type {
   VideoMetadata,
 } from './VideoProcessingAdapter';
 
-// Error types
+// Video Processing Error types
 export {
   VideoProcessingError,
   VideoProcessingErrorCode,
   mapNativeErrorToVideoProcessingError,
 } from './native/VideoProcessingError';
 
-// Implementations
+// Video Processing Implementations
 export { NativeVideoProcessingAdapter } from './native/NativeVideoProcessingAdapter';
 export { MockVideoProcessingAdapter } from './mock/MockVideoProcessingAdapter';
+
+// Permission Adapter
+export type { PermissionAdapter } from './PermissionAdapter';
+export { PermissionStatus, PermissionType } from './PermissionAdapter';
+export { NativePermissionAdapter } from './native/NativePermissionAdapter';
+
+// File Picker Adapter
+export type { FilePickerAdapter, VideoFile } from './FilePickerAdapter';
+export { NativeFilePickerAdapter } from './native/NativeFilePickerAdapter';

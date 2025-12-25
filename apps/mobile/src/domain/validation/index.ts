@@ -1,7 +1,7 @@
 /**
  * Domain Validation
  *
- * Business rule validation for frame extraction requests.
+ * Business rule validation for frame extraction requests and video files.
  */
 
 // Validation rules and constants
@@ -27,3 +27,12 @@ export {
   validateVideoPath,
   validateOutputDirectory,
 } from './validators/parameterValidators';
+
+// Video file validator
+export {
+  validateVideoFile,
+  isWarning,
+  SUPPORTED_VIDEO_EXTENSIONS,
+  SUPPORTED_MIME_TYPES,
+  VIDEO_VALIDATION_ERROR_CODES,
+} from './videoValidator';

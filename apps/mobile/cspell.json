@@ -39,7 +39,11 @@
     "Podfile",
     "Sandboxing",
     "xcassets",
-    "MacinCloud"
+    "MacinCloud",
+    "quicktime",
+    "msvideo",
+    "matroska",
+    "retryable"
   ],
   "ignorePaths": [
     "node_modules",
