@@ -17,7 +17,7 @@ The project foundation is complete with native FFmpeg integration for iOS. The f
 - ✅ TypeScript strict mode
 - ✅ Testing infrastructure
 - ✅ FFmpeg integration for iOS (frame extraction, metadata)
-- ⏳ FFmpeg integration for Android (pending)
+- ⏳ Android native video processing (in progress)
 - ⏳ Video processing features (UI implementation pending)
 
 ## Tech Stack
@@ -26,7 +26,7 @@ The project foundation is complete with native FFmpeg integration for iOS. The f
 - **Language**: TypeScript (Strict mode)
 - **Targets**: Android + iOS
 - **Architecture**: Client-only (no backend)
-- **Video Processing**: FFmpeg (ffmpeg-kit-react-native, min variant)
+- **Video Processing**: iOS (ffmpeg-kit-react-native), Android (platform APIs)
 - **Testing**: Jest
 - **Linting**: ESLint + Prettier
 - **Spellcheck**: CSpell
@@ -95,9 +95,6 @@ pnpm start
 
 # Android setup notes:
 # - Ensure you have Android SDK configured (ANDROID_HOME or android/local.properties).
-# - FFmpegKit dependency may not be available from Maven Central anymore; if Gradle fails to resolve
-#   `com.arthenica:ffmpeg-kit-*`, use an internal Maven mirror (Artifactory/Nexus) and set:
-#   `FFMPEG_KIT_REPO_URL` (and optionally `FFMPEG_KIT_REPO_USER` / `FFMPEG_KIT_REPO_TOKEN`).
 
 # Run on Android
 pnpm android
@@ -146,14 +143,17 @@ See [docs/contributing.md](./docs/contributing.md) for development guidelines an
 
 ## Native Dependencies
 
-### FFmpeg Integration
+### Video Processing
 
-VideoSpliter uses **ffmpeg-kit-react-native** (min variant) for video processing:
+iOS uses **ffmpeg-kit-react-native** (min variant) for video processing:
 
 - **Library**: `ffmpeg-kit-react-native`
 - **Variant**: Min (~30-40MB additional app size)
-- **iOS Status**: ✅ Implemented (Issue #3)
-- **Android Status**: ⏳ Pending (Issue #2)
+- **iOS Status**: �o. Implemented (Issue #3)
+
+Android uses platform APIs (`MediaMetadataRetriever`) for metadata and frame extraction.
+We removed ffmpeg-kit on Android because its artifacts are no longer reliably available
+from Maven Central, which blocks local builds without a mirror.
 
 **Capabilities**:
 
@@ -162,7 +162,7 @@ VideoSpliter uses **ffmpeg-kit-react-native** (min variant) for video processing
 - Cancel long-running operations
 - Support for common video formats (MP4, MOV, AVI, etc.)
 
-**Bundle Size Impact**:
+**Bundle Size Impact (iOS)**:
 
 - iOS: +30-40MB (min variant vs +120MB for full FFmpeg)
 - The min variant includes essential video processing codecs
@@ -186,7 +186,7 @@ The app requires the following iOS permissions (configured in Info.plist):
 The following features will be implemented in future issues:
 
 - ✅ Native FFmpeg integration for iOS
-- ⏳ Native FFmpeg integration for Android (Issue #2)
+- ⏳ Android native video processing refinements (Issue #2)
 - Video import and preview UI
 - Frame extraction UI with timeline
 - Export and sharing functionality

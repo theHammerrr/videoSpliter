@@ -24,28 +24,11 @@ Example `android/local.properties`:
 sdk.dir=C\:/Users/<you>/AppData/Local/Android/Sdk
 ```
 
-### 2 FFmpegKit repository (required)
+### 2 Native video processing (FFmpegKit removed)
 
-The project depends on `com.arthenica:ffmpeg-kit-min`. If Gradle fails with:
-
-`Could not find com.arthenica:ffmpeg-kit-min:<version>`
-
-then you must provide an alternative Maven repository that hosts/mirrors the FFmpegKit artifacts
-(recommended: your organization’s Artifactory/Nexus).
-
-Configure it via environment variables (preferred) or Gradle properties:
-
-- `FFMPEG_KIT_REPO_URL` (required when Maven Central resolution fails)
-- `FFMPEG_KIT_REPO_USER` (optional)
-- `FFMPEG_KIT_REPO_TOKEN` (optional)
-
-PowerShell example:
-
-```powershell
-$env:FFMPEG_KIT_REPO_URL="https://<your-artifactory-or-nexus>/maven/"
-$env:FFMPEG_KIT_REPO_USER="<username>"        # optional
-$env:FFMPEG_KIT_REPO_TOKEN="<token/password>" # optional
-```
+Android now uses platform APIs (`MediaMetadataRetriever`) for metadata and frame extraction.
+We removed ffmpeg-kit because its Android artifacts are no longer reliably available from
+Maven Central, which blocks local builds without a mirror.
 
 ## Run the app (recommended workflow)
 
@@ -85,4 +68,4 @@ From `apps/mobile/android`:
 
 - **SDK location not found**: set `ANDROID_HOME` or create `android/local.properties` with `sdk.dir=...`.
 - **No emulators found**: create an AVD in Android Studio or connect a physical device.
-- **FFmpegKit dependency not found**: set `FFMPEG_KIT_REPO_URL` (and credentials if needed) to your Maven mirror.
+- **Frame extraction is slow**: lower the target frame rate or extract fewer frames on-device.

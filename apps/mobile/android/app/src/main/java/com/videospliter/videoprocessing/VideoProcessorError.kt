@@ -7,7 +7,7 @@ package com.videospliter.videoprocessing
 enum class VideoProcessorError(val code: String, val message: String) {
     INVALID_VIDEO_PATH("INVALID_VIDEO_PATH", "Video file path is invalid"),
     INVALID_OUTPUT_DIR("INVALID_OUTPUT_DIR", "Output directory is invalid or cannot be created"),
-    FFMPEG_FAILED("FFMPEG_FAILED", "FFmpeg execution failed"),
+    FFMPEG_FAILED("FFMPEG_FAILED", "Video processing failed"),
     VIDEO_NOT_FOUND("VIDEO_NOT_FOUND", "Video file not found at the specified path"),
     UNSUPPORTED_FORMAT("UNSUPPORTED_FORMAT", "Unsupported or corrupted video format"),
     INSUFFICIENT_STORAGE("INSUFFICIENT_STORAGE", "Not enough storage space available"),
